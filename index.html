@@ -127,13 +127,12 @@
 
     <script>
         // ====================================================
-        // 👇👇👇 請在這裡修改生日日期 👇👇👇
-        // 格式：YYYY-MM-DDT00:00:00 (T代表時間分隔)
-        // 例如：想改成 2026年1月7日，就填 "2026-01-07T00:00:00"
+        // 👇👇👇 設定區 👇👇👇
+        // 這裡已經改成 1月6日
         
         const config = {
             targetDate: "2026-01-06T00:00:00", 
-            userName: "使用者" // 這裡可以改成你想稱呼他的名字
+            userName: "使用者" 
         };
         
         // ====================================================
@@ -143,7 +142,7 @@
         const countdownEl = document.getElementById('countdown');
         const targetDateDisplay = document.getElementById('target-date-display');
 
-        // 顯示目標日期在畫面上
+        // 顯示目標日期在畫面上 (程式會自動抓取月份和日期)
         const dateObj = new Date(config.targetDate);
         targetDateDisplay.textContent = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
 
@@ -153,7 +152,7 @@
             `識別身分: [${config.userName}]`,
             "權限確認: 已授權 (Authorized)",
             "正在掃描時間軸...",
-            "鎖定關鍵事件: 生日慶典",
+            "鎖定關鍵事件: 特別日", // 改成比較中性的詞
             "啟動倒數計時模組..."
         ];
 
@@ -207,7 +206,7 @@
         function showBirthdaySuccess() {
             countdownEl.innerHTML = 
                 `<span style="color:white;">🎉 ACCESS GRANTED 🎉</span><br>` +
-                `<span style="font-size:1rem; margin-top:10px; display:block;">生日快樂！<br>祝萬事順利，程式無 Bug！</span>`;
+                `<span style="font-size:1rem; margin-top:10px; display:block;">時間到！<br>祝萬事順利，程式無 Bug！</span>`;
             
             // 追加一行日誌
             const div = document.createElement('div');
