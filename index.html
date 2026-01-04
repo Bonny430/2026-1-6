@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 手機適配關鍵 -->
+    <title>System Access: 0107</title>
+    <style>
+        /* --- 基礎設定 --- */
+        :root {
+            --green: #0f0;
+            --dark-green: #003300;
+            --bg: #000;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--green);
+            font-family: 'Courier New', monospace; /* 駭客字體 */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            /* 螢幕掃描線效果 */
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+        }
+
+        /* --- 終端機視窗 --- */
+        #terminal {
+            width: 90%; /* 手機寬度適配 */
+            max-width: 600px;
+            background: rgba(0, 10, 0, 0.9);
+            border: 1px solid var(--green);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+            padding: 20px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        /* --- 頂部狀態列 --- */
+        .status-bar {
+            border-bottom: 1px dashed var(--green);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* --- 日誌區域 --- */
+        #console-log {
+            font-size: 0.9rem;
+            height: 120px; /* 固定高度防止跳動 */
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .log-line {
+            margin: 3px 0;
+            word-wrap: break-word; /* 防止手機上文字太長撐開 */
+        }
+
+        /* --- 倒數計時區 --- */
+        #timer-box {
+            display: none; /* 一開始隱藏 */
+            border: 1px solid var(--green);
+            padding: 20px;
+            text-align: center;
+            animation: popIn 0.5s ease forwards;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .timer-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--green);
+            margin-top: 10px;
+            line-height: 1.2;
+        }
+
+        /* 手機上字體稍微縮小 */
+        @media (max-width: 400px) {
+            .timer-display { font-size: 1.4rem; }
+            #terminal { padding: 15px; width: 95%; }
+        }
+
+        /* --- 游標動畫 --- */
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--green);
+            margin-left: 5px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .highlight { color: #fff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="terminal">
+        <div class="status-bar">
+            <span>USER: AUTHORIZED</span>
+            <span>SECURE: TRUE</span>
+        </div>
+
+        <div id="console-log"></div>
+
+        <div id="timer-box">
+            <div style="font-size: 0.8rem; opacity: 0.7;">> 目標日期鎖定 <span id="target-date-display"></span></div>
+            <div id="countdown" class="timer-display">計算中...</div>
+        </div>
+    </div>
+
+    <script>
+        // ====================================================
+        // 👇👇👇 請在這裡修改生日日期 👇👇👇
+        // 格式：YYYY-MM-DDT00:00:00 (T代表時間分隔)
+        // 例如：想改成 2026年1月7日，就填 "2026-01-07T00:00:00"
+        
+        const config = {
+            targetDate: "2026-01-07T00:00:00", 
+            userName: "使用者" // 這裡可以改成你想稱呼他的名字
+        };
+        
+        // ====================================================
+
+        const logContainer = document.getElementById('console-log');
+        const timerBox = document.getElementById('timer-box');
+        const countdownEl = document.getElementById('countdown');
+        const targetDateDisplay = document.getElementById('target-date-display');
+
+        // 顯示目標日期在畫面上
+        const dateObj = new Date(config.targetDate);
+        targetDateDisplay.textContent = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+
+        // 開機日誌文字
+        const logs = [
+            "正在初始化系統...",
+            `識別身分: [${config.userName}]`,
+            "權限確認: 已授權 (Authorized)",
+            "正在掃描時間軸...",
+            "鎖定關鍵事件: 生日慶典",
+            "啟動倒數計時模組..."
+        ];
+
+        let logIndex = 0;
+
+        // 1. 執行開機動畫
+        function runLogs() {
+            if (logIndex < logs.length) {
+                const div = document.createElement('div');
+                div.className = 'log-line';
+                div.innerHTML = `> ${logs[logIndex]}`;
+                logContainer.appendChild(div);
+                logIndex++;
+                // 自動捲動到底部
+                logContainer.scrollTop = logContainer.scrollHeight;
+                setTimeout(runLogs, 600); // 調整文字出現速度
+            } else {
+                // 日誌跑完，顯示倒數
+                timerBox.style.display = 'block';
+                startCountdown();
+            }
+        }
+
+        // 2. 倒數計時邏輯
+        function startCountdown() {
+            const targetTime = new Date(config.targetDate).getTime();
+
+            const timer = setInterval(() => {
+                const now = new Date().getTime();
+                const diff = targetTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(timer);
+                    showBirthdaySuccess();
+                    return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                // 手機版分行顯示比較好看
+                countdownEl.innerHTML = 
+                    `${d}天 ${h}時 <br>` +
+                    `${m}分 ${s}秒`;
+            }, 1000);
+        }
+
+        // 3. 時間到之後的畫面
+        function showBirthdaySuccess() {
+            countdownEl.innerHTML = 
+                `<span style="color:white;">🎉 ACCESS GRANTED 🎉</span><br>` +
+                `<span style="font-size:1rem; margin-top:10px; display:block;">生日快樂！<br>祝萬事順利，程式無 Bug！</span>`;
+            
+            // 追加一行日誌
+            const div = document.createElement('div');
+            div.className = 'log-line highlight';
+            div.textContent = "> 系統狀態: 慶祝模式已開啟 🎂";
+            logContainer.appendChild(div);
+        }
+
+        // 啟動程式
+        window.onload = runLogs;
+
+    </script>
+</body>
+</html>
+
+
